@@ -25,10 +25,10 @@ with open('data/acc_info.json', 'rb') as File:
 @tg_bot.message_handler(commands=['start'])
 def com_start(msg):
 	if msg.chat.id not in sender.chatIds:
-		tg_bot.send_message(msg.chat.id, "Hello, it't bot not for you!")
+		tg_bot.send_message(msg.chat.id, f"Hello, it't bot not for you!\nYou'r chatId: {msg.chat.id}")
 		return
 
-	tg_bot.send_message(msg.chat.id, f"Hello\n\nHow to use:\nSend link to chat(example: https://discord.com/channels/965966609078448138/965966609330077701)\nOR you can send just chat(example: 965966609330077701)\n\nFor add tag use '+'(example: +hello)\nFor delite tag use '-'(example: -hello)\nFor show tags: tags\nYou'r sender.chatIds: {msg.chat.id}", disable_web_page_preview=True)
+	tg_bot.send_message(msg.chat.id, f"Hello\n\nHow to use:\nSend link to chat(example: https://discord.com/channels/965966609078448138/965966609330077701)\nOR you can send just chat(example: 965966609330077701)\n\nFor add tag use '+'(example: +hello)\nFor delite tag use '-'(example: -hello)\nFor show tags: tags\nYou'r chatId: {msg.chat.id}", disable_web_page_preview=True)
 
 @tg_bot.message_handler(commands=['help'])
 def helper(msg):
@@ -92,17 +92,17 @@ def msg_handel(msg):
 
 		if message.lower() == 'tags':
 			tags_list = '\n'.join(pars.tags)
-			sender.send_to(f"Tags list\n{tags_list}", msg.chat.id)
+			sender.send_to(f"Tags list:\n{tags_list}", msg.chat.id)
 			return True
 
 		if message.lower() == 'chats':
 			msg_channel_id_str = '\n'.join([f"{d['message_from']} / {d['channel_id']}" for d in pars.data])
-			sender.send_to(f"Chat list\n{msg_channel_id_str}", msg.chat.id)
+			sender.send_to(f"Chat list:\n{msg_channel_id_str}", msg.chat.id)
 			return True
 
 		if message.lower() == 'users':
 			msg_channel_id_str = '\n'.join(pars.users)
-			sender.send_to(f"Username list\n{msg_channel_id_str}", msg.chat.id)
+			sender.send_to(f"Username list:\n{msg_channel_id_str}", msg.chat.id)
 			return True
 
 		if message.lower() == 'add':
@@ -113,6 +113,11 @@ def msg_handel(msg):
 				markup.add(types.InlineKeyboardButton(i[1], callback_data=f"guild_{i[0]}"))
 			markup.add(types.InlineKeyboardButton('Close', callback_data='close'))
 			sender.send_to("Choose guild", msg.chat.id, markup)
+			return True
+
+		if message.lower() == 'client':
+			users_list = '\n'.join(sender.chatIds)
+			sender.send_to(f"Clients list:\n{users_list}", msg.chat.id)
 			return True
 
 		disChatID = message.split('/')[-1:][0]
@@ -140,7 +145,7 @@ def msg_handel(msg):
 		return True
 	if len(message.split(' ')) == 2:
 		_data = message.split(' ')
-		if _data[0] == 'del':
+		if _data[0].lower() == 'del':
 			if _data[1] in [d['channel_id'] for d in pars.data]:
 				item = next(d for d in pars.data if d['channel_id'] == _data[1])
 				sender.send_to(f"Channel {item['message_from']} delited", msg.chat.id)
@@ -148,6 +153,21 @@ def msg_handel(msg):
 				pars.save_data()
 			else:
 				sender.send_to(f"Channel {_data[1]} not defined", msg.chat.id)
+			return True
+
+		if _data[0].lower() == 'user':
+			if (_data[1].isdigit()):
+				sender.send_to(f"{_data[1]} user added", msg.chat.id)
+				if (int(_data[1]) in pars.users):
+					pars.users.append(int(_data[1]))
+				pars.save_users()
+			else:
+				sender.send_to(f"{_data[1]} wrong chatId, please check and try again", msg.chat.id)
+			return True
+
+		return True
+
+	sender.send_to(f"Incorrect message", msg.chat.id)
 
 @tg_bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
