@@ -5,17 +5,10 @@ class Sender():
 	def __init__(self, bot):
 		self.bot     = bot
 		self.chatIds = []
-		self.updateChatIds()
 
-	def updateChatIds(self):
-		with open('data/chatsIds.json', 'r') as f:
-			_data = f.read()
-			try:
-				self.chatIds = json.loads(_data)
-			except Exception as e:
-				print(f"ERROR - {e}")
-				print(f"File info can't interpritate to json")
-				print(_data)
+	def save_chatIds(self):
+		with open('data/chatsIds.json', 'wb') as File:
+			File.write(json.dumps(self.chatIds).encode('utf8'))
 
 	def send_to(self, text, addr, markup=None):
 		try:

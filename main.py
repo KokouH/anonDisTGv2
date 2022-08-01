@@ -116,7 +116,7 @@ def msg_handel(msg):
 			return True
 
 		if message.lower() == 'client':
-			users_list = '\n'.join(sender.chatIds)
+			users_list = '\n'.join([str(chatida) for chatida in sender.chatIds])
 			sender.send_to(f"Clients list:\n{users_list}", msg.chat.id)
 			return True
 
@@ -139,7 +139,7 @@ def msg_handel(msg):
 			pars.data.append(res[0])
 			pars.save_data()
 		else:
-			sender.send_to(f"Channel {disChatID} in exists\n{next(d for d in pars.data if d['channel_id'] == disChatID)['message_from']}", msg.chat.id)
+			sender.send_to(f"Channel {disChatID} in exists", msg.chat.id)
 			return False
 
 		return True
@@ -158,9 +158,21 @@ def msg_handel(msg):
 		if _data[0].lower() == 'user':
 			if (_data[1].isdigit()):
 				sender.send_to(f"{_data[1]} user added", msg.chat.id)
-				if (int(_data[1]) in pars.users):
-					pars.users.append(int(_data[1]))
-				pars.save_users()
+				if (int(_data[1]) not in sender.chatIds):
+					sender.chatIds.append(int(_data[1]))
+				sender.save_chatIds()
+			else:
+				sender.send_to(f"{_data[1]} wrong chatId, please check and try again", msg.chat.id)
+			return True
+
+		if _data[0].lower() == '-user':
+			if (_data[1].isdigit()):
+				if (int(_data[1]) in sender.chatIds):
+					sender.chatIds.remove(int(_data[1]))
+					sender.send_to(f"{_data[1]} user delited", msg.chat.id)
+					sender.save_chatIds()
+				else:
+					sender.send_to(f"{_data[1]} user not defined", msg.chat.id)
 			else:
 				sender.send_to(f"{_data[1]} wrong chatId, please check and try again", msg.chat.id)
 			return True
@@ -177,7 +189,6 @@ def callback_handler(call):
 
 	if _data[0] in ('close', 'guild'):
 		tg_bot.edit_message_text(chat_id=call.message.chat.id, text=call.message.json['text'], message_id=call.message.id)
-		pars.save_data()
 
 	if _data[0] == 'guild':
 		gl = _data[1]
@@ -205,8 +216,10 @@ def callback_handler(call):
 		for i, it in enumerate(pars.data):
 			if (it['channel_id'] in chnls):
 				if (pars.data[i]['filter_type'] == 'role'):
-					pars.data[i]['roles'].append(call.data.split('_')[1])
+					pars.data[i]['roles'].append(_data[1])
 					print(f"added role {_data[1]}")
+		pars.save_data()
+
 		markup = types.InlineKeyboardMarkup()
 		markup.row_width = 1
 		for i in call.message.json['reply_markup']['inline_keyboard']:

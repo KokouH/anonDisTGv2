@@ -68,11 +68,11 @@ class Parser():
 	def filter(self, channel_mess, filter_type, channel_data):
 		if filter_type == 'tags':
 			for tag in self.tags:
-				if tag in channel_mess['content']:
+				if tag in channel_mess['content'].lower():
 					return True
 
 		if filter_type == 'role':
-			roles = self.bot.getProfile(channel_mess['author']['id'], guildID=channel_data['informatin'].split('/')[:-2][0])
+			roles = self.bot.getProfile(channel_mess['author']['id'], guildID=channel_data['informatin'].split('/')[-3:][0])
 			if roles.status_code != 200:
 				return False
 			for role in roles.json()['guild_member']['roles']:
@@ -104,7 +104,7 @@ class Parser():
 			# print(res[0])
 			if channel_mess['timestamp'] != res[0]['timestamp']:
 				start_index = 0
-				while start_index < 50 and channel_mess['timestamp'] != res[start_index]['timestamp']:
+				while start_index < len(res) and channel_mess['timestamp'] != res[start_index]['timestamp']:
 					start_index += 1
 				start_index -= 1
 				# print(start_index)
