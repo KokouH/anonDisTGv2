@@ -1,4 +1,4 @@
-def update_acc_info(message, chatId):
+def update_acc_info(message, chatId, sender, pars):
 	sender.send_to(message, chatId)
 	print('\nStart update acc_info')
 	gls = pars.bot.getGuilds().json()
