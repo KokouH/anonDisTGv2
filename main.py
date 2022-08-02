@@ -52,7 +52,7 @@ def msg_handel(msg):
 		tg_bot.send_message(msg.chat.id, "Hello, it't bot not for you!")
 		return
 	message = msg.json['text']
-	if len(message.split(' ')) < 2:
+	if len(message.split(' ')) < 2 or message[0] in ('+', '-'):
 		if message[0] == '+':
 			_tag = message[1:]
 			if ('#' in _tag):
@@ -63,12 +63,13 @@ def msg_handel(msg):
 				else:
 					sender.send_to(f'Username "{_tag}" is exists', msg.chat.id)
 				return True
-			if _tag not in pars.tags:
-				pars.tags.append(_tag)
-				pars.save_tags()
-				sender.send_to(f'Tag "{_tag}" added', msg.chat.id)
 			else:
-				sender.send_to(f'Tag "{_tag}" is exists', msg.chat.id)
+				if _tag not in pars.tags:
+					pars.tags.append(_tag)
+					pars.save_tags()
+					sender.send_to(f'Tag "{_tag}" added', msg.chat.id)
+				else:
+					sender.send_to(f'Tag "{_tag}" is exists', msg.chat.id)
 			return True
 
 		if message[0] == '-':
@@ -96,8 +97,13 @@ def msg_handel(msg):
 			return True
 
 		if message.lower() == 'chats':
-			msg_channel_id_str = '\n'.join([f"{d['message_from']} / {d['channel_id']}" for d in pars.data])
-			sender.send_to(f"Chat list:\n{msg_channel_id_str}", msg.chat.id)
+			mse = ""
+			for d in pars.data:
+				if 'message_from' in list(d.keys()):
+					mse += f"{d['message_from']} / {d['channel_id']}\n"
+				else:
+					mse += f"{d['channel_id']}\n"
+			sender.send_to(f"Chat list:\n{mse}", msg.chat.id)
 			return True
 
 		if message.lower() == 'users':
