@@ -48,6 +48,8 @@ def helper(msg):
 
 @tg_bot.message_handler()
 def msg_handel(msg):
+	global acc_info
+
 	if msg.chat.id not in sender.chatIds:
 		tg_bot.send_message(msg.chat.id, "Hello, it't bot not for you!")
 		return
@@ -134,12 +136,26 @@ def msg_handel(msg):
 				sender.send_to(f"Can't get messages from channel", msg.chat.id)
 				return False
 			res = res.json()
+
+			index = None
+			ch = 0
+			# for ch in range(len(acc_info['chs'])):
+			while ((ch < len(acc_info['chs'])) and (index == None)):
+				if disChatID in [ch_id['id'] for ch_id in acc_info['chs'][ch]]:
+					index = True
+					channel_name = next(c for c in acc_info["chs"][ch] if c['id'] == disChatID)['name']
+					res[0]['informatin'] = f'https://discord.com/channels/{acc_info["gls"][ch]["id"]}/{disChatID}/'
+					res[0]['message_from'] = f'{acc_info["gls"][ch]["name"]} / {channel_name}'
+				ch += 1
+			if index == None:
+				acc_info = utils.update_acc_info("Server with chat not defined, updating account information...", call.message.chat.id, sender, pars)
+				sender.send_to(f"Try again add channel")
+				return False
+
 			markup = types.InlineKeyboardMarkup()
 			markup.row_width = 2
 			markup.add(types.InlineKeyboardButton('Tags', callback_data=f'filter_tags_{disChatID}'), types.InlineKeyboardButton('Roles', callback_data=f'filter_role_{disChatID}'), types.InlineKeyboardButton('From user', callback_data=f'filter_user_{disChatID}'))
 			sender.send_to(f"Choose filter", msg.chat.id, markup)
-			# res[0]['message_from'] =
-			# res[0]['informatin'] =
 			# res[0]['filter_type'] =
 			res[0]['roles'] = []
 			pars.data.append(res[0])
@@ -240,15 +256,7 @@ def callback_handler(call):
 		while ((ch < len(acc_info['chs'])) and (index == None)):
 			if _data[2] in [ch_id['id'] for ch_id in acc_info['chs'][ch]]:
 				index = next(d for d in range(len(pars.data)) if pars.data[d]['channel_id'] == _data[2])
-				channel_name = next(c for c in acc_info["chs"][ch] if c['id'] == _data[2])['name']
-				pars.data[index]['informatin'] = f'https://discord.com/channels/{acc_info["gls"][ch]["id"]}/{_data[2]}/'
-				pars.data[index]['message_from'] = f'{acc_info["gls"][ch]["name"]} / {channel_name}'
-				print(index)
 			ch += 1
-		if index == None:
-			acc_info = utils.update_acc_info("Server with chat not defined, updating account information...", call.message.chat.id, sender, pars)
-			sender.send_to(f"Try again add channel")
-			return False
 		pars.data[index]['filter_type'] = _data[1]
 		tg_bot.edit_message_text(chat_id=call.message.chat.id, text=f'Chat {_data[2]} added', message_id=call.message.id)
 		print("Filter added", index)
@@ -256,14 +264,17 @@ def callback_handler(call):
 
 def main():
 	while 1:
-		_data = pars.parse_mess()
-		pars.data = _data['full_mess']
-		for message in _data['send_mess']:
-			# print(message)
-			sender.send_all(f"{message['message_from']}\n\n{message['informatin'] + message['id']}\n\n{message['content']}")
-			time.sleep(0.5)
-		pars.save_data()
-		time.sleep(15)
+		try:
+			_data = pars.parse_mess()
+			pars.data = _data['full_mess']
+			for message in _data['send_mess']:
+				# print(message)
+				sender.send_all(f"{message['message_from']}\n\n{message['informatin'] + message['id']}\n\n{message['content']}")
+				time.sleep(0.5)
+			pars.save_data()
+			time.sleep(15)
+		except Exception as e:
+			print(e)
 
 if __name__ == "__main__":
 	print("Bot start work")
