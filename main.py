@@ -156,7 +156,7 @@ def msg_handel(msg):
 			markup.row_width = 2
 			markup.add(types.InlineKeyboardButton('Tags', callback_data=f'filter_tags_{disChatID}'), types.InlineKeyboardButton('Roles', callback_data=f'filter_role_{disChatID}'), types.InlineKeyboardButton('From user', callback_data=f'filter_user_{disChatID}'))
 			sender.send_to(f"Choose filter", msg.chat.id, markup)
-			# res[0]['filter_type'] =
+			res[0]['filter_type'] = None
 			res[0]['roles'] = []
 			pars.data.append(res[0])
 			pars.save_data()
@@ -274,7 +274,9 @@ def main():
 			pars.save_data()
 			time.sleep(15)
 		except Exception as e:
-			print(e)
+			with open('log.log', 'a') as log:
+				log.write(str(e))
+				log.write('\n')
 
 if __name__ == "__main__":
 	print("Bot start work")
