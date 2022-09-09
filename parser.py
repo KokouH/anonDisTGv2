@@ -75,6 +75,8 @@ class Parser():
 			roles = self.bot.getProfile(channel_mess['author']['id'], guildID=channel_data['informatin'].split('/')[-3:][0])
 			if roles.status_code != 200:
 				return False
+			if ('guild_member' not in roles.json()):
+				return False
 			for role in roles.json()['guild_member']['roles']:
 				if role in channel_data['roles']:
 					return True
